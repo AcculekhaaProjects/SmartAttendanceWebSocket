@@ -1,4 +1,6 @@
-﻿using Attendance.DataAccess;
+﻿using Attendance.BusinessLogic.Interfaces;
+using Attendance.BusinessLogic.Processors;
+using Attendance.DataAccess;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Attendance.BusinessLogic
@@ -8,7 +10,7 @@ namespace Attendance.BusinessLogic
         public static IServiceCollection AddBusinessLogicDI(this IServiceCollection services)
         {
             services.AddDataAccessDI();
-            //services.AddScoped<IPageProcessor, PageProcessor>();
+            services.AddSingleton<IMachineProcessor, MachineProcessor>();
             return services;
         }
     }

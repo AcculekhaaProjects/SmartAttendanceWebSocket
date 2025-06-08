@@ -1,11 +1,13 @@
+using Attendance.BusinessLogic.Interfaces;
 using Attendance.WS;
-using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddWebSocketDI();
 var app = builder.Build();
 app.UseWebSockets();
 
-var socketHandler = new MyWebSocketHandler();
+IMachineProcessor _iMachineProcessor = app.Services.GetRequiredService<IMachineProcessor>();
+var socketHandler = new MyWebSocketHandler(_iMachineProcessor);
 
 app.Use(async (context, next) =>
 {
@@ -13,10 +15,6 @@ app.Use(async (context, next) =>
     {
         if (context.WebSockets.IsWebSocketRequest)
         {
-            //var remoteIp = context.Connection.RemoteIpAddress?.ToString();
-            //var hostName = Dns.GetHostEntry(context.Connection.RemoteIpAddress!).HostName;
-            //DataLogger.SaveTextToLog($"New WebSocket connection from {remoteIp} ({hostName})");
-
             var socket = await context.WebSockets.AcceptWebSocketAsync();
             await socketHandler.HandleAsync(context, socket);
         }
@@ -33,4 +31,5 @@ app.Use(async (context, next) =>
 
 app.MapGet("/", () => "Connected!");
 
-app.Run();
+// Await the run method to keep the host alive
+await app.RunAsync();

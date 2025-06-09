@@ -1,5 +1,5 @@
 ﻿using Attendance.BusinessLogic.Interfaces;
-using Attendance.WS.Models;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -45,12 +45,12 @@ namespace Attendance.WS
         protected override Task OnMessage(WebSocket socket, string message)
         {
             DataLogger.SaveTextToLog("Message from client: " + message);
-            SendMessageInfo objSendMessageInfo = new SendMessageInfo();
             JObject jsonMsg = JObject.Parse(message);
             var cmd = jsonMsg.Value<string>("cmd");
             var ret = jsonMsg.Value<string>("ret");
             var sns = jsonMsg.Value<string>("sn") ?? "";
             string enrollid;
+            string strRespone;
 
             if (!string.IsNullOrEmpty(cmd))
             {
@@ -62,11 +62,9 @@ namespace Attendance.WS
                             ConnectedDevice.ConnectedDevices.Remove(sns);
                         }
                         ConnectedDevice.ConnectedDevices.Add(sns, this);
-                        objSendMessageInfo.cloudtime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                        objSendMessageInfo.result = true;
-                        objSendMessageInfo.ret = "reg";
-                        DataLogger.SaveTextToLog("Sending Message reg: " + JsonConvert.SerializeObject(objSendMessageInfo));
-                        return SendMessageAsync(socket, JsonConvert.SerializeObject(objSendMessageInfo));
+                        strRespone = "{\"ret\":\"reg\",\"result\":true,\"cloudtime\":\"" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "\"}";
+                        DataLogger.SaveTextToLog("Sending Message reg: " + strRespone);
+                        return SendMessageAsync(socket, strRespone);
                     case "sendlog":
                         String aliasid = "";
                         var logcount = jsonMsg.Value<Int32>("count");
@@ -83,23 +81,18 @@ namespace Attendance.WS
                             DataLogger.SaveTextToLog("Alias = " + aliasid + " Enrollid = " + enrollid);
                             _iMachineProcessor.InsertMachineRawPunch(sns, time.ToString(), enrollid.ToString());
                         }
-                        objSendMessageInfo.cloudtime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                        objSendMessageInfo.result = true;
-                        objSendMessageInfo.ret = "sendlog";
-                        objSendMessageInfo.logindex = logindex;
-                        objSendMessageInfo.count = logcount;
-                        DataLogger.SaveTextToLog("Sending Message sendlog: " + JsonConvert.SerializeObject(objSendMessageInfo));
-                        return SendMessageAsync(socket, JsonConvert.SerializeObject(objSendMessageInfo));
+                        strRespone = "{\"ret\":\"sendlog\",\"result\":true,\"cloudtime\":\"" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "\"";
+                        strRespone = strRespone + ",\"logindex\":" + logindex;
+                        strRespone = strRespone + ",\"count\":" + logcount;
+                        strRespone = strRespone + "}";
+                        DataLogger.SaveTextToLog("Sending Message sendlog: " + strRespone);
+                        return SendMessageAsync(socket, strRespone);
                     case "senduser":
                         enrollid = jsonMsg.Value<string>("enrollid") ?? "";
                         var backupnum = jsonMsg.Value<Int32>("backupnum");
-                        objSendMessageInfo.cloudtime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                        objSendMessageInfo.result = true;
-                        objSendMessageInfo.ret = "senduser";
-                        objSendMessageInfo.enrollid = enrollid;
-                        objSendMessageInfo.backupnum = backupnum;
-                        DataLogger.SaveTextToLog("Sending Message senduser: " + JsonConvert.SerializeObject(objSendMessageInfo));
-                        return SendMessageAsync(socket, JsonConvert.SerializeObject(objSendMessageInfo));
+                        strRespone = "{\"ret\":\"senduser\",\"result\":true,\"enrollid\":" + enrollid + ",\"backupnum\":" + backupnum + "}";
+                        DataLogger.SaveTextToLog("Sending Message senduser: " + strRespone);
+                        return SendMessageAsync(socket, strRespone);
                     default:
                         break;
                 }

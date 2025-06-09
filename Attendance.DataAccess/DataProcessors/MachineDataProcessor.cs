@@ -34,7 +34,7 @@ namespace Attendance.DataAccess.DataProcessors
                 cmd.Parameters.AddWithValue("@Latitude", 0);
                 cmd.Parameters.AddWithValue("@Longitude", 0);
                 cmd.Parameters.AddWithValue("@IsManual", 0);
-                await _iDbHelper.ExecuteScalarBySQLCommand(cmd);
+                var result = await _iDbHelper.ExecuteScalarBySQLCommand(cmd);
             }
             catch
             {

@@ -2,13 +2,27 @@ using Attendance.BusinessLogic.Interfaces;
 using Attendance.WS;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Register services
 builder.Services.AddWebSocketDI();
+builder.Services.AddControllers();
+
+// Add Swagger (OpenAPI generator)
+builder.Services.AddEndpointsApiExplorer();
+
 var app = builder.Build();
+
+// Enable controllers
+app.MapControllers();
+
+// Enable WebSockets globally
 app.UseWebSockets();
 
+// Resolve your processor
 IMachineProcessor _iMachineProcessor = app.Services.GetRequiredService<IMachineProcessor>();
 var socketHandler = new MyWebSocketHandler(_iMachineProcessor);
 
+// Custom WebSocket middleware
 app.Use(async (context, next) =>
 {
     if (context.Request.Path == "/pub/chat")
@@ -29,7 +43,8 @@ app.Use(async (context, next) =>
     }
 });
 
+// Simple root endpoint
 app.MapGet("/", () => "Connected!");
 
-// Await the run method to keep the host alive
+// Run app
 await app.RunAsync();

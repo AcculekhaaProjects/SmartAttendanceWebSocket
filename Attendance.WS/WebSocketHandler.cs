@@ -60,7 +60,7 @@ namespace Attendance.WS
             return Task.CompletedTask;
         }
 
-        protected Task SendMessageAsync(WebSocket socket, string message)
+        public Task SendMessageAsync(WebSocket socket, string message)
         {
             var bytes = Encoding.UTF8.GetBytes(message);
             return socket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
